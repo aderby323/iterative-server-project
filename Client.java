@@ -7,7 +7,7 @@ public class Client {
         System.out.println("Enter port: ");
         int port = Integer.parseInt(reader.readLine());
 
-        Socket socket = new Socket("localhost", port);
+        Socket socket = new Socket("139.62.210.153", port);
 
         BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         
