@@ -20,24 +20,23 @@ public class Client {
     public static void main(String[] args) throws IOException, InterruptedException {
         
         Scanner input = new Scanner(System.in);
-        ClientConnection[] clients = new ClientConnection[25];
+        //ClientConnection[] clients = new ClientConnection[25];
 
         System.out.print("Enter address: ");
         String address = input.nextLine();
         System.out.print("Enter port number: ");
         int port = input.nextInt();
 
-        Socket socket = new Socket(address, port);
 
         while (true) {
 
             System.out.println("================================================================================");
-            System.out.println("|| DateTime - Get date and time on the server.");
-            System.out.println("|| Uptime - Amount of time server has been running since last boot-up");
-            System.out.println("|| Memory Use - Current memory usage on the server.");
-            System.out.println("|| Netstat - Lists network connections on the server.");
-            System.out.println("|| Current Users - Lists users currently connected to the server.");
-            System.out.println("|| Running Processes - Lists programs running on the server.");
+            System.out.println("|| 1) DateTime - Get date and time on the server.");
+            System.out.println("|| 2) Uptime - Amount of time server has been running since last boot-up");
+            System.out.println("|| 3) MemoryUse - Current memory usage on the server.");
+            System.out.println("|| 4) Netstat - Lists network connections on the server.");
+            System.out.println("|| 5) CurrentUsers - Lists users currently connected to the server.");
+            System.out.println("|| 6) Running Processes - Lists programs running on the server.");
             System.out.println("|| Quit - Exits the program.");
             System.out.println("================================================================================");
             
@@ -47,17 +46,12 @@ public class Client {
             System.out.println("\nNumber of clients to spawn: ");
             int clientsToCreate = input.nextInt();
 
+			// Test remove after test 
+			userInput = "Netstat";
             for (int i = 0; i < clientsToCreate; i++) {
-                ClientConnection client = new ClientConnection(socket, userInput);
-                clients[i] = client;
-            }
-
-            for (ClientConnection client : clients) {
-                client.start();
-            }
-
-            for(ClientConnection client : clients) {
-                client.join();
+				String sClientNumber = "";
+				sClientNumber = "Client_" + i;
+                new ClientConnection(sClientNumber, address, port, userInput).start();
             }
         }
 
@@ -73,8 +67,8 @@ class ClientConnection extends Thread {
     private BufferedReader input;
     private DataOutputStream output;
 
-    public ClientConnection(Socket socket, String response) throws IOException {
-        this.socket = socket;
+    public ClientConnection(String str, String address, int port, String response) throws IOException {
+        socket = new Socket(address, port);
         this.response = response;
         input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         output = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
