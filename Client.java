@@ -45,7 +45,7 @@ public class Client {
             System.out.println("\nNumber of clients to spawn (1, 5, 10, 25): ");
             int clientsToCreate = input.nextInt();
             if (clientsToCreate > 1 || (clientsToCreate >= 25 && clientsToCreate % 5 == 0)) {
-                System.out.println("You may only create 1, 5, 10, or 25 clients.");
+                System.out.println("You may only create 1, 5, 10, or 25 clients.\n");
                 continue;
             }
 
@@ -95,12 +95,8 @@ class ClientConnection extends Thread {
         try {
             while (true) {
                 if (input.readUTF() != null) {
-                    try {
-                        finish = Instant.now();
-                        System.out.println(input.readUTF());
-                    } catch (Exception eof) {
-                        eof.printStackTrace();
-                    }
+                    finish = Instant.now();
+                    System.out.println(input.readUTF());
                     break;
                 }
             }
