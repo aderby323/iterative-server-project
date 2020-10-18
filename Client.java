@@ -30,12 +30,12 @@ public class Client {
         while (true) {
 
             System.out.println("================================================================================");
-            System.out.println("|| DateTime - Get date and time on the server.");
-            System.out.println("|| Uptime - Amount of time server has been running since last boot-up");
-            System.out.println("|| Memory Use - Current memory usage on the server.");
-            System.out.println("|| Netstat - Lists network connections on the server.");
-            System.out.println("|| Current Users - Lists users currently connected to the server.");
-            System.out.println("|| Running Processes - Lists programs running on the server.");
+            System.out.println("|| 1) DateTime - Get date and time on the server.");
+            System.out.println("|| 2) Uptime - Amount of time server has been running since last boot-up");
+            System.out.println("|| 3) MemoryUse - Current memory usage on the server.");
+            System.out.println("|| 4) Netstat - Lists network connections on the server.");
+            System.out.println("|| 5) CurrentUsers - Lists users currently connected to the server.");
+            System.out.println("|| 6) Running Processes - Lists programs running on the server.");
             System.out.println("|| Quit - Exits the program.");
             System.out.println("================================================================================");
             
