@@ -1,6 +1,16 @@
 import java.net.*;
 import java.io.*;
 
+/* *
+ * 
+ * Iterative Socket Server w/ Multi-Threaded Client 
+ * CNT 4504: Computer Networks and Distributed Processing 
+ * Professor John Scott Kelly 
+ * Alexander Derby, Afsara Chowdhurry, Emily Ottesen 
+ * 10/18/2020
+ *
+ * */
+
 public class Server implements Runnable {
     private Thread request;
     private ServerSocket server;
@@ -51,9 +61,6 @@ class ClientHandler extends Thread {
     DataInputStream input;
     DataOutputStream output;
     Socket socket;
-    Process process;
-    BufferedReader processInput;
-
 
     public ClientHandler(Server server, Socket socket) throws IOException {
         this.server = server;
@@ -67,24 +74,24 @@ class ClientHandler extends Thread {
         try {
             String request = input.readUTF();
             System.out.println(request);
-            switch (request) {
+            switch (request.toLowerCase()) {
                 case "datetime":
-                    executeRequest("datetime", process, processInput);
+                    executeRequest("datetime");
                     break;
                 case "uptime":
-                    executeRequest("uptime", process, processInput);
+                    executeRequest("uptime");
                     break;
                 case "memoryuse":
-                    executeRequest("free", process, processInput);
+                    executeRequest("free");
                     break;
                 case "netstat":
-                    executeRequest("netstat", process, processInput);
+                    executeRequest("netstat");
                     break;
                 case "currentusers":
-                    executeRequest("who", process, processInput);
+                    executeRequest("who");
                     break;
                 case "runningprocesses":
-                    executeRequest("ps -e", process, processInput);
+                    executeRequest("ps -e");
                     break;
                 default:
                     output.writeUTF("Unknown request.");
@@ -101,13 +108,16 @@ class ClientHandler extends Thread {
         }
     }
 
-    private void executeRequest(String request, Process process, BufferedReader processInput) throws IOException {
-        String line;
+    private void executeRequest(String request) throws IOException {
+ 
+		Runtime runtime = Runtime.getRuntime();
+        Process process = runtime.exec(request);
         StringBuilder response = new StringBuilder();
-        process = Runtime.getRuntime().exec(request);
-        processInput = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream())); 
+        String line=null;
 
-        while ((line = processInput.readLine()) != null) {
+        while ((line = input.readLine()) != null) {
+			System.out.println(line);
             response.append(line + "\n");
         }
         respondToClient(response);
