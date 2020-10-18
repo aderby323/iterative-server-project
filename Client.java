@@ -17,17 +17,15 @@ import java.util.Scanner;
 public class Client {
 
     // Get IP address, port number, and user response
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public static void main(String[] args) throws IOException {
         
         Scanner input = new Scanner(System.in);
-        ClientConnection[] clients = new ClientConnection[25];
 
+        // Get desired address and port number
         System.out.print("Enter address: ");
         String address = input.nextLine();
         System.out.print("Enter port number: ");
         int port = input.nextInt();
-
-        Socket socket = new Socket(address, port);
 
         while (true) {
 
@@ -44,20 +42,16 @@ public class Client {
             System.out.print("\nEnter a command: ");
             String userInput = input.next();
             if (userInput.equalsIgnoreCase("quit")) { break; }
-            System.out.println("\nNumber of clients to spawn: ");
+            System.out.println("\nNumber of clients to spawn (1, 5, 10, 25): ");
             int clientsToCreate = input.nextInt();
+            if (clientsToCreate > 1 || (clientsToCreate >= 25 && clientsToCreate % 5 == 0)) {
+                System.out.println("You may only create 1, 5, 10, or 25 clients.");
+                continue;
+            }
 
+            // Create desired number of clients and add them to an array
             for (int i = 0; i < clientsToCreate; i++) {
-                ClientConnection client = new ClientConnection(socket, userInput);
-                clients[i] = client;
-            }
-
-            for (ClientConnection client : clients) {
-                client.start();
-            }
-
-            for(ClientConnection client : clients) {
-                client.join();
+                new ClientConnection(address, port, userInput, i+1).start();
             }
         }
 
@@ -68,23 +62,24 @@ public class Client {
 
 class ClientConnection extends Thread {
 
+    private int id;
     private String response;
     private Socket socket;
-    private BufferedReader input;
+    private DataInputStream input;
     private DataOutputStream output;
 
-    public ClientConnection(Socket socket, String response) throws IOException {
-        this.socket = socket;
+    public ClientConnection(String address, int port, String response, int id) throws IOException {
+        this.id = id;
+        this.socket = new Socket(address, port);
         this.response = response;
-        input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        input = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
         output = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
     }
 
     @Override
     public void run() {
-        String serverResponse;
-        boolean retrievedResonse = false;
         Instant start = Instant.now();
+        Instant finish;
 
         // Send the user's response to Server
         try {
@@ -97,16 +92,19 @@ class ClientConnection extends Thread {
 
         // Wait for the server to send a response, print each line,
         // and record the Turn-around time.
-
         try {
-            while (!retrievedResonse) {
-                while ((serverResponse = input.readLine()) != null) {
-                    System.out.println(serverResponse);
-                    retrievedResonse = true;
+            while (true) {
+                if (input.readUTF() != null) {
+                    try {
+                        finish = Instant.now();
+                        System.out.println(input.readUTF());
+                    } catch (Exception eof) {
+                        eof.printStackTrace();
+                    }
+                    break;
                 }
-            }   
-            Instant finish = Instant.now();
-            System.out.println(Duration.between(start, finish).toMillis());
+            }
+            System.out.println("Turn-around time for Client " + id + ": " + Duration.between(start, finish).toMillis() + " ms.");
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }

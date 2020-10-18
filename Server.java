@@ -1,65 +1,122 @@
 import java.net.*;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.io.*;
-import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
 
-public class Server {
+public class Server implements Runnable {
+    private Thread request;
+    private ServerSocket server;
+    private ClientHandler client;
+
+    public Server(int port) throws IOException {
+        server = new ServerSocket(port);
+        System.out.println("[Server] Server has been created.");
+    }
+
+    @Override
+    public void run() {
+        while (request != null) {
+            try {
+                System.out.println("[Server] Waiting for connection.");
+                addRequest(server.accept());
+            } catch (IOException ioException) { ioException.printStackTrace(); }
+        }
+    }
+
+    private void addRequest(Socket socket) throws IOException {
+        client = new ClientHandler(this, socket);
+        System.out.println("[Server] Client accepted.");
+
+        client.start();
+    }
+
+    public void start() {
+        if (request == null) {
+            request = new Thread(this);
+            request.start();
+        }
+    }
 
     public static void main(String[] args) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         System.out.println("Enter port: ");
         int port = Integer.parseInt(reader.readLine());
         
-        ServerSocket server = new ServerSocket(port);
-        RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
+        Server server = new Server(port);
+        server.start();
+    }
+}
 
-        System.out.println("[Server] Waiting for a connection.");
-        Socket socket = server.accept();
-        System.out.println("[Server] Connected to client.");
+class ClientHandler extends Thread {
 
-        PrintWriter output = new PrintWriter(socket.getOutputStream(), true);
-        BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+    Server server;
+    DataInputStream input;
+    DataOutputStream output;
+    Socket socket;
+    Process process;
+    BufferedReader processInput;
 
+
+    public ClientHandler(Server server, Socket socket) throws IOException {
+        this.server = server;
+        this.socket = socket;
+        input = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+        output = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+    }
+
+    @Override
+    public void run() {
         try {
-            while (true) {
-                String request = input.readLine();
-                if (request.equalsIgnoreCase("exit")) { 
-                    output.println("exit");
-                    break; 
+            String request = input.readUTF();
+            System.out.println(request);
+            switch (request) {
+                case "datetime":
+                    executeRequest("datetime", process, processInput);
+                    break;
+                case "uptime":
+                    executeRequest("uptime", process, processInput);
+                    break;
+                case "memoryuse":
+                    executeRequest("free", process, processInput);
+                    break;
+                case "netstat":
+                    executeRequest("netstat", process, processInput);
+                    break;
+                case "currentusers":
+                    executeRequest("who", process, processInput);
+                    break;
+                case "runningprocesses":
+                    executeRequest("ps -e", process, processInput);
+                    break;
+                default:
+                    output.writeUTF("Unknown request.");
+                    break;
                 }
-                switch (request.toLowerCase()) {
-                    case "datetime":
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yy HH:mm:ss");
-                        output.println(dateFormat.format(new Date()));
-                        break;
-                    case "uptime":
-                        long uptime = runtimeMXBean.getUptime();
-                        output.println(uptime);
-                        break;
-                    case "memoryuse":
-                        output.println((double) Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
-                        break;
-                    case "netstat":
-                        Process process = Runtime.getRuntime().exec("netstat");
-                        output.println();
-                        break;
-                    case "currentusers":
-                        output.println();
-                        break;
-                    case "runningprocesses":
-                        output.println();
-                        break;
-                    default:
-                        output.println("Unknown request.");
-                        break;
-                }
-            }
+        } catch (Exception exception) {
+            exception.printStackTrace();
         } finally {
-            System.out.println("[Server] Closing connection.");
-            socket.close();
-            server.close();
+            try {
+                output.close();
+                input.close();
+                socket.close();
+            } catch (IOException ioException) { ioException.printStackTrace(); }
         }
+    }
+
+    private void executeRequest(String request, Process process, BufferedReader processInput) throws IOException {
+        String line;
+        StringBuilder response = new StringBuilder();
+        process = Runtime.getRuntime().exec(request);
+        processInput = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+        while ((line = processInput.readLine()) != null) {
+            response.append(line + "\n");
+        }
+        respondToClient(response);
+    }
+
+    private void respondToClient(StringBuilder response) {
+        try {
+            output.writeUTF(response.toString());
+            output.flush();
+        } catch (IOException ioException) { ioException.printStackTrace(); }
     }
 }
