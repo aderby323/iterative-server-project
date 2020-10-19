@@ -25,7 +25,6 @@ public class Server implements Runnable {
     public void run() {
         while (request != null) {
             try {
-                System.out.println("[Server] Waiting for connection.");
                 addRequest(server.accept());
             } catch (IOException ioException) { ioException.printStackTrace(); }
         }
@@ -113,10 +112,10 @@ class ClientHandler extends Thread {
 		Runtime runtime = Runtime.getRuntime();
         Process process = runtime.exec(request);
         StringBuilder response = new StringBuilder();
-        BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream())); 
-        String line=null;
+        BufferedReader responseInput = new BufferedReader(new InputStreamReader(process.getInputStream())); 
+        String line;
 
-        while ((line = input.readLine()) != null) {
+        while ((line = responseInput.readLine()) != null) {
 			System.out.println(line);
             response.append(line + "\n");
         }
