@@ -75,7 +75,7 @@ class ClientHandler extends Thread {
             System.out.println(request);
             switch (request.toLowerCase()) {
                 case "datetime":
-                    executeRequest("datetime");
+                    executeRequest("date +%d/%m/%Y%t%H:%M:%S");
                     break;
                 case "uptime":
                     executeRequest("uptime");

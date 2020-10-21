@@ -14,12 +14,15 @@ import java.util.Scanner;
  *
  * */
 
-public class Client {
+public class Client {   
 
     // Get IP address, port number, and user response
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         
         Scanner input = new Scanner(System.in);
+        ClientConnection[] clients = new ClientConnection[25];
+        long[] times = new long[25];
+        long averageTurnAroundTime;
 
         // Get desired address and port number
         System.out.print("Enter address: ");
@@ -29,30 +32,44 @@ public class Client {
 
         while (true) {
 
-            System.out.println("================================================================================");
-            System.out.println("|| 1) DateTime - Get date and time on the server.");
-            System.out.println("|| 2) Uptime - Amount of time server has been running since last boot-up");
-            System.out.println("|| 3) MemoryUse - Current memory usage on the server.");
-            System.out.println("|| 4) Netstat - Lists network connections on the server.");
-            System.out.println("|| 5) CurrentUsers - Lists users currently connected to the server.");
-            System.out.println("|| 6) Running Processes - Lists programs running on the server.");
+            System.out.println("\n================================================================================");
+            System.out.println("|| Type in a command (Case-Insensitive)");
+            System.out.println("|| DateTime - Get date and time on the server.");
+            System.out.println("|| Uptime - Amount of time server has been running since last boot-up");
+            System.out.println("|| MemoryUse - Current memory usage on the server.");
+            System.out.println("|| Netstat - Lists network connections on the server.");
+            System.out.println("|| CurrentUsers - Lists users currently connected to the server.");
+            System.out.println("|| Running Processes - Lists programs running on the server.");
             System.out.println("|| Quit - Exits the program.");
             System.out.println("================================================================================");
             
             System.out.print("\nEnter a command: ");
             String userInput = input.next();
             if (userInput.equalsIgnoreCase("quit")) { break; }
-            System.out.println("\nNumber of clients to spawn (1, 5, 10, 25): ");
+            System.out.println("\nNumber of clients to spawn (1, 5, 10, 15, 20 25): ");
             int clientsToCreate = input.nextInt();
-            if (clientsToCreate > 1 || (clientsToCreate >= 25 && clientsToCreate % 5 == 0)) {
-                System.out.println("You may only create 1, 5, 10, or 25 clients.\n");
+            if (!(clientsToCreate > 1 && clientsToCreate <= 25 && clientsToCreate % 5 == 0)) {
+                System.out.println("You may only create 1, 5, 10, 15, 20 or 25 clients.\n");
                 continue;
             }
 
-            // Create desired number of clients and add them to an array
+            averageTurnAroundTime = 0;
+            
+            // Create desired number of clients
             for (int i = 0; i < clientsToCreate; i++) {
-                new ClientConnection(address, port, userInput, i+1).start();
+                ClientConnection client = new ClientConnection(address, port, userInput, i+1);
+                clients[i] = client;
             }
+
+            for (int j = 0; j < clientsToCreate; j++) {
+                clients[j].start();
+                clients[j].join();
+                times[j] = clients[j].getTurnAroundTime();
+                averageTurnAroundTime = averageTurnAroundTime + times[j];
+            }
+
+            System.out.println("Average turn-around time: " + (averageTurnAroundTime / clientsToCreate) + "ms.");
+
         }
 
         //Close the Scanner
@@ -67,6 +84,8 @@ class ClientConnection extends Thread {
     private Socket socket;
     private DataInputStream input;
     private DataOutputStream output;
+    private Instant start;
+    private Instant finish;
 
     public ClientConnection(String address, int port, String response, int id) throws IOException {
         this.id = id;
@@ -78,8 +97,7 @@ class ClientConnection extends Thread {
 
     @Override
     public void run() {
-        Instant start = Instant.now();
-        Instant finish;
+        start = Instant.now();
 
         // Send the user's response to Server
         try {
@@ -94,13 +112,13 @@ class ClientConnection extends Thread {
         // and record the Turn-around time.
         try {
             while (true) {
-                if (input.readUTF() != null) {
+                if (input.available() > 0) {
                     finish = Instant.now();
                     System.out.println(input.readUTF());
                     break;
                 }
             }
-            System.out.println("Turn-around time for Client " + id + ": " + Duration.between(start, finish).toMillis() + " ms.");
+            System.out.println("Turn-around time for Client " + id + ": " + getTurnAroundTime() + " ms.");
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
@@ -110,5 +128,8 @@ class ClientConnection extends Thread {
         catch (IOException ioException) { ioException.printStackTrace(); }
     }
 
-
+    //Return the Turn-around time for the process
+    public long getTurnAroundTime() {
+        return Duration.between(start, finish).toMillis();
+    }
 }
