@@ -48,8 +48,8 @@ public class Client {
             if (userInput.equalsIgnoreCase("quit")) { break; }
             System.out.println("\nNumber of clients to spawn (1, 5, 10, 15, 20 25): ");
             int clientsToCreate = input.nextInt();
-            if (!(clientsToCreate > 1 && clientsToCreate <= 25 && clientsToCreate % 5 == 0)) {
-                System.out.println("You may only create 1, 5, 10, 15, 20 or 25 clients.\n");
+            if (!((clientsToCreate == 1) || (clientsToCreate > 0 && clientsToCreate <= 25 && clientsToCreate % 5 == 0))) {
+                System.out.println("You may only create 1, 5, 10, 15, 20 or 25 clients.");
                 continue;
             }
 
