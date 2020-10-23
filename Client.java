@@ -10,7 +10,7 @@ import java.util.Scanner;
  * CNT 4504: Computer Networks and Distributed Processing 
  * Professor John Scott Kelly 
  * Alexander Derby, Afsara Chowdhurry, Emily Ottesen 
- * 10/16/2020
+ * 10/23/2020
  *
  * */
 
@@ -34,12 +34,12 @@ public class Client {
 
             System.out.println("\n================================================================================");
             System.out.println("|| Type in a command (Case-Insensitive)");
-            System.out.println("|| DateTime - Get date and time on the server.");
+            System.out.println("|| Datetime - Get date and time on the server.");
             System.out.println("|| Uptime - Amount of time server has been running since last boot-up");
             System.out.println("|| MemoryUse - Current memory usage on the server.");
             System.out.println("|| Netstat - Lists network connections on the server.");
             System.out.println("|| CurrentUsers - Lists users currently connected to the server.");
-            System.out.println("|| Running Processes - Lists programs running on the server.");
+            System.out.println("|| RunningProcesses - Lists programs running on the server.");
             System.out.println("|| Quit - Exits the program.");
             System.out.println("================================================================================");
             
@@ -117,7 +117,7 @@ class ClientConnection extends Thread {
                 }
             }
             finish = Instant.now();
-            System.out.println("Turn-around time for Client: " + getTurnAroundTime() + " ms.");
+            System.out.println("Turn-around time for Client: " + getTurnAroundTime() + " ms.\n");
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }

@@ -7,7 +7,7 @@ import java.io.*;
  * CNT 4504: Computer Networks and Distributed Processing 
  * Professor John Scott Kelly 
  * Alexander Derby, Afsara Chowdhurry, Emily Ottesen 
- * 10/18/2020
+ * 10/23/2020
  *
  * */
 
@@ -21,15 +21,18 @@ public class Server implements Runnable {
         System.out.println("[Server] Server has been created.");
     }
 
+    // Wait for a new connection and add a new request when one is recieved
     @Override
     public void run() {
         while (request != null) {
             try {
+                System.out.println("[Server] Listening...");
                 addRequest(server.accept());
             } catch (IOException ioException) { ioException.printStackTrace(); }
         }
     }
 
+    // Create a ClientHandler to process user's request
     private void addRequest(Socket socket) throws IOException {
         client = new ClientHandler(this, socket);
         System.out.println("[Server] Client accepted.");
@@ -44,6 +47,7 @@ public class Server implements Runnable {
         }
     }
 
+    // Get port number from user and create new Server
     public static void main(String[] args) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         System.out.println("Enter port: ");
@@ -61,6 +65,7 @@ class ClientHandler extends Thread {
     DataOutputStream output;
     Socket socket;
 
+    // Instantiate new connection to the Server
     public ClientHandler(Server server, Socket socket) throws IOException {
         this.server = server;
         this.socket = socket;
@@ -107,6 +112,7 @@ class ClientHandler extends Thread {
         }
     }
 
+    // Execute command given by user 
     private void executeRequest(String request) throws IOException {
  
 		Runtime runtime = Runtime.getRuntime();
@@ -122,6 +128,7 @@ class ClientHandler extends Thread {
         respondToClient(response);
     }
 
+    // Send response back to Client
     private void respondToClient(StringBuilder response) {
         try {
             output.writeUTF(response.toString());
