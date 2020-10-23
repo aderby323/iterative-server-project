@@ -22,7 +22,7 @@ public class Client {
         Scanner input = new Scanner(System.in);
         ClientConnection[] clients = new ClientConnection[25];
         long[] times = new long[25];
-        long averageTurnAroundTime;
+        long totalTurnAroundTime;
 
         // Get desired address and port number
         System.out.print("Enter address: ");
@@ -53,11 +53,11 @@ public class Client {
                 continue;
             }
 
-            averageTurnAroundTime = 0;
+            totalTurnAroundTime = 0;
             
             // Create desired number of clients
             for (int i = 0; i < clientsToCreate; i++) {
-                ClientConnection client = new ClientConnection(address, port, userInput, i+1);
+                ClientConnection client = new ClientConnection(address, port, userInput);
                 clients[i] = client;
             }
 
@@ -65,10 +65,11 @@ public class Client {
                 clients[j].start();
                 clients[j].join();
                 times[j] = clients[j].getTurnAroundTime();
-                averageTurnAroundTime = averageTurnAroundTime + times[j];
+                totalTurnAroundTime = totalTurnAroundTime + times[j];
             }
 
-            System.out.println("Average turn-around time: " + (averageTurnAroundTime / clientsToCreate) + "ms.");
+            System.out.println("Total turn-around time for " + clientsToCreate + " clients: " + totalTurnAroundTime + "ms.");
+            System.out.println("Average turn-around time: " + (totalTurnAroundTime / clientsToCreate) + "ms.");
 
         }
 
@@ -79,7 +80,6 @@ public class Client {
 
 class ClientConnection extends Thread {
 
-    private int id;
     private String response;
     private Socket socket;
     private DataInputStream input;
@@ -87,8 +87,7 @@ class ClientConnection extends Thread {
     private Instant start;
     private Instant finish;
 
-    public ClientConnection(String address, int port, String response, int id) throws IOException {
-        this.id = id;
+    public ClientConnection(String address, int port, String response) throws IOException {
         this.socket = new Socket(address, port);
         this.response = response;
         input = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
@@ -97,10 +96,10 @@ class ClientConnection extends Thread {
 
     @Override
     public void run() {
-        start = Instant.now();
 
         // Send the user's response to Server
         try {
+            start = Instant.now();
             output.writeUTF(response);
             output.flush();
 
@@ -118,7 +117,7 @@ class ClientConnection extends Thread {
                     break;
                 }
             }
-            System.out.println("Turn-around time for Client " + id + ": " + getTurnAroundTime() + " ms.");
+            System.out.println("Turn-around time for Client: " + getTurnAroundTime() + " ms.");
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
