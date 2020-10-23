@@ -112,11 +112,11 @@ class ClientConnection extends Thread {
         try {
             while (true) {
                 if (input.available() > 0) {
-                    finish = Instant.now();
                     System.out.println(input.readUTF());
                     break;
                 }
             }
+            finish = Instant.now();
             System.out.println("Turn-around time for Client: " + getTurnAroundTime() + " ms.");
         } catch (IOException ioException) {
             ioException.printStackTrace();
